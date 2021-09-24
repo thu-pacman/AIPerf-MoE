@@ -11,7 +11,6 @@ if __name__ == '__main__':
     output = {}
     fin = open(args.input_file, mode='r', encoding='utf-8')
     fout = open(args.output_prefix + '.json', mode='w')
-    print(args.input_file, args.output_prefix)
     doc = ''
     for line in fin:
         if len(line) > 1:
