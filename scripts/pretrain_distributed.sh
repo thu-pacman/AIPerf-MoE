@@ -8,8 +8,6 @@ export GPUS_PER_NODE=$SLURM_NTASKS_PER_NODE
 
 DATA_PATH=/home/cuvelia/aiperf-moebench/data/enwik8/enwik8_text_document
 
-DISTRIBUTED_ARGS="--nproc_per_node $GPUS_PER_NODE --nnodes $NNODES --node_rank $NODE_RANK --master_addr $MASTER_ADDR --master_port $MASTER_PORT"
-
 export MASTER_ADDR=$(scontrol show JobId=$SLURM_JOB_ID | grep BatchHost | tr '=' ' ' | awk '{print $2}')
 export MASTER_PORT=26845
 export RANK=$NODE_RANK
@@ -45,7 +43,7 @@ exec python pretrain.py \
        --clip-grad 1.0 \
        --lr-warmup-fraction .01 \
        --checkpoint-activations \
-       --log-interval 100 \
+       --log-interval 1 \
        --save-interval 10000000 \
        --eval-interval 1000 \
        --eval-iters 10 \

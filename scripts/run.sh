@@ -6,4 +6,4 @@ then
 fi
 
 srun -N 1 --ntasks-per-node 1 --gres=gpu:1 --exclusive --export=ALL \
-    ./pretrain_distributed.sh
+    scripts/pretrain_distributed.sh
