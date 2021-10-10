@@ -6,7 +6,7 @@ export NNODES=$SLURM_NNODES
 export NODE_RANK=$SLURM_PROCID
 export GPUS_PER_NODE=$SLURM_NTASKS_PER_NODE
 
-DATA_PATH=/home/cuvelia/aiperf-moebench/data/enwik8/enwik8_text_document
+DATA_PATH=/home/laekov/dataset/enwik8/enwik8_text_document
 
 export MASTER_ADDR=$(scontrol show JobId=$SLURM_JOB_ID | grep BatchHost | tr '=' ' ' | awk '{print $2}')
 export MASTER_PORT=26845
@@ -20,15 +20,15 @@ export LOCAL_RANK=$(($NODE_RANK%$GPUS_PER_NODE))
 #echo $GPUS_PER_NODE
 #echo $LOCAL_RANK
 
-exec python pretrain.py \
+exec python -u pretrain.py \
        --num-layers 4 \
-       --hidden-size 512 \
+       --hidden-size 1024 \
        --num-attention-heads 16 \
        --micro-batch-size 2 \
        --global-batch-size 16 \
        --seq-length 1024 \
        --max-position-embeddings 1024 \
-       --train-iters 1000 \
+       --train-iters 100000 \
        --lr-decay-iters 320000 \
        --data-path $DATA_PATH \
        --data-impl mmap \
@@ -49,4 +49,4 @@ exec python pretrain.py \
        --eval-iters 10 \
        --fmoefy \
        --num-experts 4 \
-       --top-k 2 \
+       --top-k 2

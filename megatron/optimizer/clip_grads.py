@@ -101,14 +101,15 @@ def clip_grad_norm_fp32(parameters, max_norm, norm_type=2):
             # we need the pow(norm-type).
             total_norm = grad_norm ** norm_type
 
-            grad_norm, _ = multi_tensor_applier(
-                amp_C.multi_tensor_l2norm,
-                dummy_overflow_buf,
-                [grads_in_moe],
-                False # no per-parameter norm
-            )
-            grad_norm = grad_norm ** norm_type
-            torch.distributed.all_reduce(grad_norm)
+            if len(grads_in_moe) > 0:
+                grad_norm, _ = multi_tensor_applier(
+                    amp_C.multi_tensor_l2norm,
+                    dummy_overflow_buf,
+                    [grads_in_moe],
+                    False # no per-parameter norm
+                )
+                grad_norm = grad_norm ** norm_type
+                torch.distributed.all_reduce(grad_norm)
             total_norm += grad_norm
 
         else:
