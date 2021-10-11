@@ -75,13 +75,13 @@ def parse_args(extra_args_provider=None, defaults={},
         'size ({})'.format(args.world_size, args.tensor_model_parallel_size,
                            args.pipeline_model_parallel_size)
     args.data_parallel_size = args.world_size // model_parallel_size
-    if args.rank == 0:
-        print('using world size: {}, data-parallel-size: {}, '
-              'tensor-model-parallel size: {}, '
-              'pipeline-model-parallel size: {} '.format(
-                  args.world_size, args.data_parallel_size,
-                  args.tensor_model_parallel_size,
-                  args.pipeline_model_parallel_size), flush=True)
+    # if args.rank == 0:
+    #     print('using world size: {}, data-parallel-size: {}, '
+    #           'tensor-model-parallel size: {}, '
+    #           'pipeline-model-parallel size: {} '.format(
+    #               args.world_size, args.data_parallel_size,
+    #               args.tensor_model_parallel_size,
+    #               args.pipeline_model_parallel_size), flush=True)
 
     # Deprecated arguments
     assert args.batch_size is None, '--batch-size argument is no longer ' \
@@ -99,18 +99,18 @@ def parse_args(extra_args_provider=None, defaults={},
     assert args.micro_batch_size > 0
     if args.global_batch_size is None:
         args.global_batch_size = args.micro_batch_size * args.data_parallel_size
-        if args.rank == 0:
-            print('setting global batch size to {}'.format(
-                args.global_batch_size), flush=True)
+    #     if args.rank == 0:
+    #         print('setting global batch size to {}'.format(
+    #             args.global_batch_size), flush=True)
     assert args.global_batch_size > 0
 
     # Parameters dtype.
     args.params_dtype = torch.float
     if args.fp16:
         args.params_dtype = torch.half
-    if args.rank == 0:
-        print('using {} for parameters ...'.format(args.params_dtype),
-              flush=True)
+    # if args.rank == 0:
+    #     print('using {} for parameters ...'.format(args.params_dtype),
+    #           flush=True)
 
     # Consumed tokens.
     args.consumed_train_samples = 0
@@ -204,17 +204,38 @@ def parse_args(extra_args_provider=None, defaults={},
     return args
 
 
+args_to_print = [
+        'balance_strategy',
+        'data_parallel_size',
+        'tensor_model_parallel_size',
+        'world_size',
+
+        'hidden_size',
+        'num_layers',
+        'top_k',
+        'train_iters',
+        'params_dtype',
+
+        'micro_batch_size',
+        'global_batch_size',
+
+        'fp16',
+        'fp16_lm_cross_entropy',
+        'fp32_allreduce',
+        'fp32_residual_connection',
+]
+
+
 def _print_args(args):
     """Print arguments."""
     if args.rank == 0:
         print('------------------------ arguments ------------------------',
               flush=True)
         str_list = []
-        for arg in vars(args):
+        for arg in args_to_print:
             dots = '.' * (48 - len(arg))
-            str_list.append('  {} {} {}'.format(arg, dots, getattr(args, arg)))
-        for arg in sorted(str_list, key=lambda x: x.lower()):
-            print(arg, flush=True)
+            argstr = '  {} {} {}'.format(arg, dots, getattr(args, arg))
+            print(argstr, flush=True)
         print('-------------------- end of arguments ---------------------',
               flush=True)
 

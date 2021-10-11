@@ -24,9 +24,9 @@ from .gpt2_tokenization import GPT2Tokenizer
 
 def build_tokenizer(args):
     """Initialize tokenizer."""
-    if args.rank == 0:
-        print('> building {} tokenizer ...'.format(args.tokenizer_type),
-              flush=True)
+    # if args.rank == 0:
+    #     print('> building {} tokenizer ...'.format(args.tokenizer_type),
+    #           flush=True)
 
     # Select and instantiate the tokenizer.
     assert args.vocab_file is not None
@@ -60,10 +60,10 @@ def _vocab_size_with_padding(orig_vocab_size, args):
         args.tensor_model_parallel_size
     while (after % multiple) != 0:
         after += 1
-    if args.rank == 0:
-        print(' > padded vocab (size: {}) with {} dummy tokens '
-              '(new size: {})'.format(
-                  orig_vocab_size, after - orig_vocab_size, after), flush=True)
+    # if args.rank == 0:
+    #     print(' > padded vocab (size: {}) with {} dummy tokens '
+    #           '(new size: {})'.format(
+    #               orig_vocab_size, after - orig_vocab_size, after), flush=True)
     return after
 
 

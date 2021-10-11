@@ -52,7 +52,7 @@ class AnnealingLR(object):
         # Set the learning rate
         self.step(0)
 
-        print_rank_0('> learning rate decay style: {}'.format(self.decay_style))
+        # print_rank_0('> learning rate decay style: {}'.format(self.decay_style))
 
 
     def get_lr(self):

@@ -34,7 +34,7 @@ from megatron.utils import average_losses_across_data_parallel_group
 def model_provider():
     """Build the model."""
 
-    print_rank_0('building GPT model ...')
+    # print_rank_0('building GPT model ...')
     args = get_args()
     model = GPTModel(num_tokentypes=0, parallel_output=True)
 
@@ -103,8 +103,8 @@ def train_valid_test_datasets_provider(train_val_test_num_samples):
     """Build train, valid, and test datasets."""
     args = get_args()
 
-    print_rank_0('> building train, validation, and test datasets '
-                 'for GPT ...')
+    # print_rank_0('> building train, validation, and test datasets '
+    #              'for GPT ...')
     train_ds, valid_ds, test_ds = build_train_valid_test_datasets(
         data_prefix=args.data_path,
         data_impl=args.data_impl,
@@ -113,7 +113,7 @@ def train_valid_test_datasets_provider(train_val_test_num_samples):
         seq_length=args.seq_length,
         seed=args.seed,
         skip_warmup=(not args.mmap_warmup))
-    print_rank_0("> finished creating GPT datasets ...")
+    # print_rank_0("> finished creating GPT datasets ...")
     return train_ds, valid_ds, test_ds
 
 

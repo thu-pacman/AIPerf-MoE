@@ -56,8 +56,8 @@ def initialize_megatron(extra_args_provider=None, args_defaults={},
         _initialize_distributed()
         
         # Random seeds for reproducibility.
-        if args.rank == 0:
-            print('> setting random seeds to {} ...'.format(args.seed))
+        # if args.rank == 0:
+        #     print('> setting random seeds to {} ...'.format(args.seed))
         _set_random_seed(args.seed)
 
     args = get_args()
@@ -100,9 +100,9 @@ def _initialize_distributed():
     device_count = torch.cuda.device_count()
     if torch.distributed.is_initialized():
 
-        if args.rank == 0:
-            print('torch distributed is already initialized, '
-                  'skipping initialization ...', flush=True)
+        # if args.rank == 0:
+        #     print('torch distributed is already initialized, '
+        #           'skipping initialization ...', flush=True)
         args.rank = torch.distributed.get_rank()
         args.world_size = torch.distributed.get_world_size()
 

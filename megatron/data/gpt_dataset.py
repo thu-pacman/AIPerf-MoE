@@ -91,16 +91,17 @@ def _build_train_valid_test_datasets(data_prefix, data_impl, splits_string,
     splits = get_train_valid_test_split_(splits_string, total_num_of_documents)
 
     # Print stats about the splits.
-    print_rank_0(' > dataset split:')
+    # print_rank_0(' > dataset split:')
 
     def print_split_stats(name, index):
+        return
         print_rank_0('    {}:'.format(name))
         print_rank_0('     document indices in [{}, {}) total of {} '
                      'documents'.format(splits[index], splits[index + 1],
                                         splits[index + 1] - splits[index]))
-    print_split_stats('train', 0)
-    print_split_stats('validation', 1)
-    print_split_stats('test', 2)
+    # print_split_stats('train', 0)
+    # print_split_stats('validation', 1)
+    # print_split_stats('test', 2)
 
     def build_dataset(index, name):
         dataset = None
@@ -122,16 +123,16 @@ def _build_train_valid_test_datasets(data_prefix, data_impl, splits_string,
 
 def get_indexed_dataset_(data_prefix, data_impl, skip_warmup):
     """Build indexed dataset."""
-    print_rank_0(' > building dataset index ...')
+    # print_rank_0(' > building dataset index ...')
 
     start_time = time.time()
     indexed_dataset = make_indexed_dataset(data_prefix,
                                            data_impl,
                                            skip_warmup)
-    print_rank_0(' > finished creating indexed dataset in {:4f} '
-                 'seconds'.format(time.time() - start_time))
-    print_rank_0('    number of documents: {}'.format(
-        indexed_dataset.sizes.shape[0]))
+    # print_rank_0(' > finished creating indexed dataset in {:4f} '
+    #              'seconds'.format(time.time() - start_time))
+    # print_rank_0('    number of documents: {}'.format(
+    #     indexed_dataset.sizes.shape[0]))
 
     return indexed_dataset
 
@@ -217,8 +218,8 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
            (not os.path.isfile(sample_idx_filename)) or \
            (not os.path.isfile(shuffle_idx_filename)):
 
-            print_rank_0(' > WARNING: could not find index map files, building '
-                         'the indices on rank 0 ...')
+            # print_rank_0(' > WARNING: could not find index map files, building '
+            #             'the indices on rank 0 ...')
 
             # For the last epoch, decide whether include the entire epoch
             # in the global shuffle or not.
@@ -227,8 +228,8 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
             # not mean anything.
             if num_epochs == 1:
                 separate_last_epoch = False
-                print(' > only one epoch required, setting '
-                      'separate_last_epoch to False', flush=True)
+                # print(' > only one epoch required, setting '
+                #       'separate_last_epoch to False', flush=True)
 
             else:
                 # Get the number of samples for the last epoch
@@ -255,16 +256,16 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
                     string = ' > last epoch number of samples ({}) is larger '\
                              'than 80% of number of samples per epoch ({}), '\
                              'setting separate_last_epoch to False'
-                print(string.format(last_epoch_num_samples,
-                                    num_samples_per_epoch), flush=True)
+                # print(string.format(last_epoch_num_samples,
+                #                     num_samples_per_epoch), flush=True)
 
             # doc-idx.
             start_time = time.time()
             doc_idx = _build_doc_idx(documents, num_epochs, np_rng,
                                      separate_last_epoch)
             np.save(doc_idx_filename, doc_idx, allow_pickle=True)
-            print_rank_0(' > elasped time to build and save doc-idx mapping '
-                         '(seconds): {:4f}'.format(time.time() - start_time))
+            # print_rank_0(' > elasped time to build and save doc-idx mapping '
+            #              '(seconds): {:4f}'.format(time.time() - start_time))
             # sample-idx.
             start_time = time.time()
             # Use C++ implementation for speed.
@@ -277,8 +278,8 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
             # sample_idx = _build_sample_idx(sizes, doc_idx, seq_length,
             #                               num_epochs, tokens_per_epoch)
             np.save(sample_idx_filename, sample_idx, allow_pickle=True)
-            print_rank_0(' > elasped time to build and save sample-idx mapping '
-                         '(seconds): {:4f}'.format(time.time() - start_time))
+           #  print_rank_0(' > elasped time to build and save sample-idx mapping '
+           #               '(seconds): {:4f}'.format(time.time() - start_time))
             # shuffle-idx.
             start_time = time.time()
             # -1 is due to data structure used to retieve the index:
@@ -290,8 +291,8 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
             shuffle_idx = _build_shuffle_idx(num_samples_,
                                              sample_idx.shape[0] - 1, np_rng)
             np.save(shuffle_idx_filename, shuffle_idx, allow_pickle=True)
-            print_rank_0(' > elasped time to build and save shuffle-idx mapping'
-                         ' (seconds): {:4f}'.format(time.time() - start_time))
+            # print_rank_0(' > elasped time to build and save shuffle-idx mapping'
+            #              ' (seconds): {:4f}'.format(time.time() - start_time))
 
     # This should be a barrier but nccl barrier assumes
     # device_index=rank which is not the case for model
@@ -305,20 +306,20 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
 
     # Load mappings.
     start_time = time.time()
-    print_rank_0(' > loading doc-idx mapping from {}'.format(
-        doc_idx_filename))
+    # print_rank_0(' > loading doc-idx mapping from {}'.format(
+    #     doc_idx_filename))
     doc_idx = np.load(doc_idx_filename, allow_pickle=True, mmap_mode='r')
-    print_rank_0(' > loading sample-idx mapping from {}'.format(
-        sample_idx_filename))
+    # print_rank_0(' > loading sample-idx mapping from {}'.format(
+    #     sample_idx_filename))
     sample_idx = np.load(sample_idx_filename, allow_pickle=True, mmap_mode='r')
-    print_rank_0(' > loading shuffle-idx mapping from {}'.format(
-        shuffle_idx_filename))
+    # print_rank_0(' > loading shuffle-idx mapping from {}'.format(
+    #     shuffle_idx_filename))
     shuffle_idx = np.load(shuffle_idx_filename, allow_pickle=True, mmap_mode='r')
-    print_rank_0('    loaded indexed file in {:3.3f} seconds'.format(
-        time.time() - start_time))
-    print_rank_0('    total number of samples: {}'.format(
-        sample_idx.shape[0]))
-    print_rank_0('    total number of epochs: {}'.format(num_epochs))
+    # print_rank_0('    loaded indexed file in {:3.3f} seconds'.format(
+    #     time.time() - start_time))
+    # print_rank_0('    total number of samples: {}'.format(
+    #     sample_idx.shape[0]))
+    # print_rank_0('    total number of epochs: {}'.format(num_epochs))
 
     return doc_idx, sample_idx, shuffle_idx
 
@@ -410,8 +411,8 @@ def _build_sample_idx(sizes, doc_idx, seq_length,
 
 def _build_shuffle_idx(num_samples, total_size, np_rng):
     """Build the range [0, size) and shuffle."""
-    print(' > building shuffle index with split [0, {}) and [{}, {}) '
-          '...'.format(num_samples, num_samples, total_size), flush=True)
+    # print(' > building shuffle index with split [0, {}) and [{}, {}) '
+    #       '...'.format(num_samples, num_samples, total_size), flush=True)
     
     dtype_ = np.uint32
     if total_size >= (np.iinfo(np.uint32).max - 1):

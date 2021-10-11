@@ -99,8 +99,8 @@ def pretrain(train_valid_test_dataset_provider, model_provider,
     torch.distributed.all_reduce(start_time_tensor,
                                  op=torch.distributed.ReduceOp.MIN)
     _TRAIN_START_TIME = start_time_tensor.item()
-    print_rank_0('time to initialize megatron (seconds): {:.3f}'.format(
-        time.time() - _TRAIN_START_TIME))
+    # print_rank_0('time to initialize megatron (seconds): {:.3f}'.format(
+    #     time.time() - _TRAIN_START_TIME))
     print_datetime('after megatron is initialized')
 
     args = get_args()
@@ -117,8 +117,8 @@ def pretrain(train_valid_test_dataset_provider, model_provider,
     timers('model and optimizer').start()
     model, optimizer, lr_scheduler = setup_model_and_optimizer(model_provider)
     timers('model and optimizer').stop()
-    print_datetime('after model, optimizer, and learning rate '
-                   'scheduler are built')
+    # print_datetime('after model, optimizer, and learning rate '
+    #                'scheduler are built')
 
     # Data stuff.
     timers('train/valid/test data iterators').start()
@@ -126,12 +126,12 @@ def pretrain(train_valid_test_dataset_provider, model_provider,
         = build_train_valid_test_data_iterators(
             train_valid_test_dataset_provider)
     timers('train/valid/test data iterators').stop()
-    print_datetime('after dataloaders are built')
+    # print_datetime('after dataloaders are built')
 
     # Print setup timing.
-    print_rank_0('done with setups ...')
-    timers.log(['model and optimizer', 'train/valid/test data iterators'])
-    print_rank_0('training ...')
+    # print_rank_0('done with setups ...')
+    # timers.log(['model and optimizer', 'train/valid/test data iterators'])
+    # print_rank_0('training ...')
 
     iteration = 0
     if args.do_train and args.train_iters > 0:
@@ -751,8 +751,8 @@ def training_log(loss_dict, total_loss_dict, learning_rate, iteration,
             args.consumed_train_samples)
         log_string += ' elapsed time per iteration (ms): {:.1f} |'.format(
             elapsed_time_per_iteration * 1000.0)
-        log_string += ' learning rate: {:.3E} |'.format(learning_rate)
-        log_string += ' global batch size: {:5d} |'.format(batch_size)
+        # log_string += ' learning rate: {:.3E} |'.format(learning_rate)
+        # log_string += ' global batch size: {:5d} |'.format(batch_size)
         for key in total_loss_dict:
             if key not in [advanced_iters_key, skipped_iters_key,
                            nan_iters_key]:
@@ -761,11 +761,11 @@ def training_log(loss_dict, total_loss_dict, learning_rate, iteration,
                 if avg > 0.0:
                     log_string += ' {}: {:.6E} |'.format(key, avg)
                 total_loss_dict[key] = torch.cuda.FloatTensor([0.0])
-        log_string += ' loss scale: {:.1f} |'.format(loss_scale)
-        log_string += ' number of skipped iterations: {:3d} |'.format(
-            total_loss_dict[skipped_iters_key])
-        log_string += ' number of nan iterations: {:3d} |'.format(
-            total_loss_dict[nan_iters_key])
+        # log_string += ' loss scale: {:.1f} |'.format(loss_scale)
+        # log_string += ' number of skipped iterations: {:3d} |'.format(
+        #     total_loss_dict[skipped_iters_key])
+        # log_string += ' number of nan iterations: {:3d} |'.format(
+        #     total_loss_dict[nan_iters_key])
         total_loss_dict[advanced_iters_key] = 0
         total_loss_dict[skipped_iters_key] = 0
         total_loss_dict[nan_iters_key] = 0
@@ -774,7 +774,7 @@ def training_log(loss_dict, total_loss_dict, learning_rate, iteration,
             # Report memory after optimizer state has been initialized.
             report_memory('(after {} iterations)'.format(iteration))
             report_memory_flag = False
-        timers.log(timers_to_log, normalizer=args.log_interval)
+        # timers.log(timers_to_log, normalizer=args.log_interval)
 
     return report_memory_flag
 
@@ -949,7 +949,7 @@ def build_train_valid_test_data_iterators(
 
     (train_dataloader, valid_dataloader, test_dataloader) = (None, None, None)
 
-    print_rank_0('> building train, validation, and test datasets ...')
+    # print_rank_0('> building train, validation, and test datasets ...')
 
     # Backward compatibility, assume fixed batch size.
     if args.iteration > 0 and args.consumed_train_samples == 0:
