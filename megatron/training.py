@@ -50,6 +50,7 @@ from megatron.model.realm_model import ICTBertModel
 from megatron.utils import check_adlr_autoresume_termination
 from megatron.data.data_loaders import build_pretraining_data_loader
 from megatron.utils import report_memory
+from megatron.flop import get_flop_per_sample
 
 from fmoe.megatron import DistributedDataParallel as LocalDDP
 from fmoe.megatron import add_balance_log
@@ -657,6 +658,7 @@ def training_log(loss_dict, total_loss_dict, learning_rate, iteration,
                  loss_scale, report_memory_flag, skipped_iter, model):
     """Log training information such as losses, timing, ...."""
     args = get_args()
+    flop_per_sample = get_flop_per_sample(args)
     timers = get_timers()
     writer = get_tensorboard_writer()
 
@@ -745,11 +747,11 @@ def training_log(loss_dict, total_loss_dict, learning_rate, iteration,
         if writer and torch.distributed.get_rank() == 0:
             writer.add_scalar('iteration-time',
                               elapsed_time_per_iteration, iteration)
-        log_string = ' iteration {:8d}/{:8d} |'.format(
+        log_string = ' iteration {:5d}/{:5d} |'.format(
             iteration, args.train_iters)
-        log_string += ' consumed samples: {:12d} |'.format(
+        log_string += ' consumed samples: {:.3e} |'.format(
             args.consumed_train_samples)
-        log_string += ' elapsed time per iteration (ms): {:.1f} |'.format(
+        log_string += ' iteration time (ms): {:.1f} |'.format(
             elapsed_time_per_iteration * 1000.0)
         # log_string += ' learning rate: {:.3E} |'.format(learning_rate)
         # log_string += ' global batch size: {:5d} |'.format(batch_size)
@@ -759,13 +761,18 @@ def training_log(loss_dict, total_loss_dict, learning_rate, iteration,
                 avg = total_loss_dict[key].item() / \
                       float(max(1, total_loss_dict[advanced_iters_key]))
                 if avg > 0.0:
-                    log_string += ' {}: {:.6E} |'.format(key, avg)
+                    log_string += ' {}: {:.3e} |'.format(key, avg)
                 total_loss_dict[key] = torch.cuda.FloatTensor([0.0])
         # log_string += ' loss scale: {:.1f} |'.format(loss_scale)
         # log_string += ' number of skipped iterations: {:3d} |'.format(
         #     total_loss_dict[skipped_iters_key])
         # log_string += ' number of nan iterations: {:3d} |'.format(
         #     total_loss_dict[nan_iters_key])
+        flops = args.global_batch_size * flop_per_sample / elapsed_time
+        log_string += ' throughput per (flops): {:.3e} |'.format(flops)
+        elapsed_time = timers('training').elapsed(reset=False)
+        flops = args.consumed_train_samples * flop_per_sample / elapsed_time
+        log_string += ' throughput (flops): {:.3e} |'.format(flops)
         total_loss_dict[advanced_iters_key] = 0
         total_loss_dict[skipped_iters_key] = 0
         total_loss_dict[nan_iters_key] = 0
@@ -810,6 +817,7 @@ def train(forward_step_func, model, optimizer, lr_scheduler,
     iteration = args.iteration
 
     timers('interval time').start()
+    timers('training').start()
     print_datetime('before the start of training step')
     report_memory_flag = True
     while iteration < args.train_iters:
