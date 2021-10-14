@@ -21,15 +21,16 @@ export LOCAL_RANK=$(($NODE_RANK%$GPUS_PER_NODE))
 #echo $LOCAL_RANK
 
 exec python -u pretrain.py \
-       --num-layers 4 \
-       --hidden-size 1024 \
-       --num-attention-heads 16 \
        --micro-batch-size 2 \
-       --global-batch-size 16 \
+       --tensor-model-parallel-size 2 \
+       --num-layers 12 \
+       --hidden-size 1024 \
+       --train-iters 15000 \
+       --log-interval 100 \
+       --num-attention-heads 16 \
        --seq-length 1024 \
        --max-position-embeddings 1024 \
-       --train-iters 100000 \
-       --lr-decay-iters 320000 \
+       --lr-decay-iters 32000 \
        --data-path $DATA_PATH \
        --data-impl mmap \
        --vocab-file /home/cuvelia/aiperf-moebench/data/gpt2-vocab.json \
@@ -42,11 +43,8 @@ exec python -u pretrain.py \
        --weight-decay 1e-2 \
        --clip-grad 1.0 \
        --lr-warmup-fraction .01 \
-       --checkpoint-activations \
-       --log-interval 1 \
-       --save-interval 10000000 \
-       --eval-interval 1000 \
-       --eval-iters 10 \
+       --eval-interval 10000000000 \
+       --eval-iters 100 \
        --fmoefy \
-       --num-experts 4 \
+       --num-experts 2 \
        --top-k 2

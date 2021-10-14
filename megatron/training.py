@@ -139,23 +139,16 @@ def pretrain(train_valid_test_dataset_provider, model_provider,
         iteration = train(forward_step_func,
                           model, optimizer, lr_scheduler,
                           train_data_iterator, valid_data_iterator)
+    elapsed_time = timers('training').elapsed(reset=False)
     print_datetime('after training is done')
+    flop_per_sample = get_flop_per_sample(args)
+    flops = args.consumed_train_samples * flop_per_sample / elapsed_time
+    print_rank_0('> validating')
 
-    if args.do_valid:
-        prefix = 'the end of training for val data'
-        evaluate_and_print_results(prefix, forward_step_func,
-                                   valid_data_iterator, model,
-                                   iteration, False)
-
-    if args.save and iteration != 0:
-        save_checkpoint(iteration, model, optimizer, lr_scheduler)
-
-    if args.do_test:
-        # Run on test data.
-        prefix = 'the end of training for test data'
-        evaluate_and_print_results(prefix, forward_step_func,
-                                   test_data_iterator, model,
-                                   0, True)
+    prefix = 'the end'
+    passed = evaluate_and_print_results(prefix, forward_step_func,
+                                        valid_data_iterator, model,
+                                        iteration, False, flops)
 
 def update_train_iters(args):
 
@@ -922,32 +915,36 @@ def evaluate(forward_step_func, data_iterator, model, verbose=False):
 
 def evaluate_and_print_results(prefix, forward_step_func,
                                data_iterator, model,
-                               iteration, verbose=False):
+                               iteration, verbose=False, flops=None):
     """Helper function to evaluate and dump results on screen."""
     args = get_args()
-    writer = get_tensorboard_writer()
 
     total_loss_dict = evaluate(forward_step_func, data_iterator, model, verbose)
-    string = ' validation loss at {} | '.format(prefix)
-    for key in total_loss_dict:
-        string += '{} value: {:.6E} | '.format(key, total_loss_dict[key].item())
-        ppl = math.exp(min(20, total_loss_dict[key].item()))
-        string += '{} PPL: {:.6E} | '.format(key, ppl)
-        if writer and is_last_rank():
-            writer.add_scalar('{} value-validation'.format(key),
-                              total_loss_dict[key].item(),
-                              iteration)
-            writer.add_scalar('{} ppl-validation'.format(key), ppl, iteration)
-            writer.add_scalar('{} value-validation vs samples'.format(key),
-                              total_loss_dict[key].item(),
-                              args.consumed_train_samples)
-            writer.add_scalar('{} ppl-validation vs samples'.format(key), ppl,
-                              args.consumed_train_samples)
+    string = ' validation loss at {}: '.format(prefix)
+    loss_value = total_loss_dict['lm loss'].item()
+    passed = loss_value < 3.0
+    string += 'LM loss value: {:.3e} '.format(loss_value) 
+    string += 'Passed' if passed else 'Failed'
+        # ppl = math.exp(min(20, total_loss_dict[key].item()))
+        # string += '{} PPL: {:.6E} | '.format(key, ppl)
+        # if writer and is_last_rank():
+        #     writer.add_scalar('{} value-validation'.format(key),
+        #                       total_loss_dict[key].item(),
+        #                       iteration)
+        #     writer.add_scalar('{} ppl-validation'.format(key), ppl, iteration)
+        #     writer.add_scalar('{} value-validation vs samples'.format(key),
+        #                       total_loss_dict[key].item(),
+        #                       args.consumed_train_samples)
+        #     writer.add_scalar('{} ppl-validation vs samples'.format(key), ppl,
+        #                       args.consumed_train_samples)
 
     length = len(string) + 1
     print_rank_last('-' * length)
     print_rank_last(string)
+    if flops is not None and passed:
+        print_rank_last('Training throughput (flops): {:.3e}'.format(flops))
     print_rank_last('-' * length)
+    return passed
 
 
 def build_train_valid_test_data_iterators(
