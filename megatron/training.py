@@ -147,7 +147,7 @@ def pretrain(train_valid_test_dataset_provider, model_provider,
 
     prefix = 'the end'
     passed = evaluate_and_print_results(prefix, forward_step_func,
-                                        valid_data_iterator, model,
+                                        train_data_iterator, model,
                                         iteration, False, flops)
 
 def update_train_iters(args):
@@ -843,7 +843,7 @@ def train(forward_step_func, model, optimizer, lr_scheduler,
            args.do_valid:
             prefix = 'iteration {}'.format(iteration)
             evaluate_and_print_results(prefix, forward_step_func,
-                                       valid_data_iterator, model,
+                                       train_data_iterator, model,
                                        iteration, False)
 
         # Exiting based on iterations        
