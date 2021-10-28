@@ -17,6 +17,7 @@
 
 import argparse
 import os
+import yaml
 
 import torch
 from megatron import fused_kernels
@@ -53,6 +54,8 @@ def parse_args(extra_args_provider=None, defaults={},
         args, _ = parser.parse_known_args()
     else:
         args = parser.parse_args()
+
+    args =  _load_custom_args(args)
 
     # Distributed args.
     args.rank = int(os.getenv('RANK', '0'))
@@ -205,25 +208,51 @@ def parse_args(extra_args_provider=None, defaults={},
 
 
 args_to_print = [
-        'balance_strategy',
         'data_parallel_size',
         'tensor_model_parallel_size',
         'world_size',
+        'balance_strategy',
 
         'hidden_size',
         'num_layers',
         'top_k',
-        'train_iters',
-        'params_dtype',
 
         'micro_batch_size',
         'global_batch_size',
+        'train_iters',
 
+        'params_dtype',
         'fp16',
         'fp16_lm_cross_entropy',
         'fp32_allreduce',
         'fp32_residual_connection',
 ]
+
+
+args_to_load = [
+        'tensor_model_parallel_size',
+        'micro_batch_size',
+        'hidden_size',
+        'num_layers',
+        'top_k',
+        'num_experts',
+        'train_iters',
+        'fp16',
+        'data_path',
+        'vocab_file',
+        'merge_file',
+        'log_interval',
+        'eval_interval',
+]
+
+
+def _load_custom_args(args):
+    with open('config.yaml', 'r') as f:
+        ca = yaml.load(f.read(), Loader=yaml.Loader)
+    for arg in args_to_load:
+        if arg in ca:
+            setattr(args, arg, ca[arg])
+    return args
 
 
 def _print_args(args):
