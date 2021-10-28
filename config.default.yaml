@@ -12,11 +12,11 @@ num_experts: 2 # Per data parallel worker
 train_iters: 8000
 fp16: false
 
-# Data path (TODO: Replace by your path)
+# Data path 
 data_path: 
-    - "/home/laekov/dataset/enwik8/enwik8_text_document"
-vocab_file: "/home/cuvelia/aiperf-moebench/data/gpt2-vocab.json"
-merge_file: "/home/cuvelia/aiperf-moebench/data/gpt2-merges.txt"
+    - "data/enwik8_text_document"
+vocab_file: "data/gpt2-vocab.json"
+merge_file: "data/gpt2-merges.txt"
 
 # Logging and misc
 log_interval: 100

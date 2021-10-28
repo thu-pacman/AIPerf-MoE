@@ -7,7 +7,10 @@ export NODE_RANK=$SLURM_PROCID
 export GPUS_PER_NODE=$SLURM_NTASKS_PER_NODE
 
 export MASTER_ADDR=$(scontrol show JobId=$SLURM_JOB_ID | grep BatchHost | tr '=' ' ' | awk '{print $2}')
-export MASTER_PORT=26845
+if [ -z $MASTER_PORT ]
+then
+    export MASTER_PORT=26845
+fi
 export RANK=$NODE_RANK
 export WORLD_SIZE=$SLURM_NTASKS
 export LOCAL_RANK=$(($NODE_RANK%$GPUS_PER_NODE))

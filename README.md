@@ -6,40 +6,45 @@ It aims at measuring both computation and communication power of a system.
 
 ## Benchmarking guide
 
+All command lines in this document is executed in the root directory of this repository.
+
 ### Install prerequisites
 
 **TOOD**
 
 ### Prepare the data
 
-The training data requires preprocessing. An example script using `enwik8` to prepare data for is [scripts/prep_enwik8.sh](./scripts/prep_enwik8.sh).
-
-If you want to preprocess text data of your own, you may first use [tools/text2json.py](./tools/text2json.py) to split a large text document into samples in a loose json format. For Example:
-
-```json
-{"text": "The quick brown fox"}
-{"text": "jumps over the lazy dog"}
-```
-
-Of course, you may create your own json file in different ways. Note that only the `text` field of the json will be used in training.
-
-The loose json is then processed into a binary format for training. To convert the json into mmap, cached index file, or the lazy loader format use [tools/preprocess_data.py](./tools/preprocess_data.py). Set the `--dataset-impl` flag to `mmap`, `cached`, or `lazy`, respectively (default is `mmap`). An example script to prepare data for training is:
+MoE Bench is using `enwik8` dataset for training.
+Run the following command to download a pre-precessed dataset and place it in `data` directory.
 
 ```bash
-python3 tools/preprocess_data.py \
-    --input my-corpus.json \
-    --tokenizer-type GPT2BPETokenizer \
-    --output-prefix my-corpus \
-    --vocab-file gpt2-vocab.json \
-    --merge-file gpt2-merges.txt
+mkdir -p data && curl https://pacman.cs.tsinghua.edu.cn/~laekov/moebench-data.tgz | tar -xz -C data
 ```
 
-The output will be two files named, in this case, `my-corpus_text_sentence.bin` and `my-corpus_text_sentence.idx`. The `--data-path` specified in later training is the full path and new filename, but without the file extension.
+### Configuration
 
-Further command line arguments are described in the source file [`preprocess_data.py`](./tools/preprocess_data.py).
+A configuration file is required by MoE Bench, namely `config.yaml`.
+An example configuation is shown in `config.default.yaml`.
+Modification of any line in this configuation file is allowed for better performance.
+Note that validation performance is not counted into final performance.
+Therefore, to increase reported performance as high as possible, `eval_interval` should be set large enough in a final run.
 
-### Configure and start a test
+Other parts of this benchmark is not allowed to be modified unless necessary.
+Please report if a submission involves any modification other than `config.yaml`.
 
-**TODO**
+### Start testing
+
+MoE Bench is by default launched using SLURM, and uses 
+An example script can be seen in `scripts/run.sh`.
+
+The distributed launcher launches `scripts/pretrain_distributed.sh`, which identifies its rank and world size with SLURM.
+If other software, e.g. MPI or PBS, is used to launch the benchmark, modify the environment variables accordingly.
 
 ### Scoring
+
+Evaluation is performed after training `train_iters` iterations.
+**A valid run requires** the validation loss to be no greater than `3`.
+
+MACs in all attention and MLP layers in forward and backward are counted as FLOP, regardless of their precision.
+FP16, FP32 and any other FP format are regarded as the same, as long as the run is valid.
+Overall FLOP per second since training begins is the only metric for ranking.
