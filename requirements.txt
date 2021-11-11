@@ -1,0 +1,8 @@
+faiss
+file_utils
+PyYAML
+regex
+six
+torch>=1.7.0
+numpy
+git+https://github.com/laekov/fastmoe.git@v0.3.0

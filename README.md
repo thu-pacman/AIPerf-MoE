@@ -1,7 +1,7 @@
-MoE Bench
+AIPerf-MoE
 ===
 
-MoE Bench is a benchmark for systems to train large AI models.
+AIPerf-MoE is a benchmark of AIPerf for systems to train large AI models.
 It aims at measuring both computation and communication power of a system.
 
 ## Benchmarking guide
@@ -10,11 +10,17 @@ All command lines in this document is executed in the root directory of this rep
 
 ### Install prerequisites
 
-**TOOD**
+This benchmark is based on Megatron-LM's codebase. 
+[PyTorch](https://github.com/pytorch/pytorch) and [FastMoE](https://github.com/laekov/fastmoe) are required.
+You can install dependents using pypi.
+
+```bash
+pip install --user -r requirements.txt
+```
 
 ### Prepare the data
 
-MoE Bench is using `enwik8` dataset for training.
+AIPerf-MoE is using `enwik8` dataset for training.
 Run the following command to download a pre-precessed dataset and place it in `data` directory.
 
 ```bash
@@ -23,7 +29,7 @@ mkdir -p data && curl https://pacman.cs.tsinghua.edu.cn/~laekov/moebench-data.tg
 
 ### Configuration
 
-A configuration file is required by MoE Bench, namely `config.yaml`.
+A configuration file is required by AIPerf-MoE, namely `config.yaml`.
 An example configuation is shown in `config.default.yaml`.
 Modification of any line in this configuation file is allowed for better performance.
 Note that validation performance is not counted into final performance.
@@ -34,7 +40,7 @@ Please report if a submission involves any modification other than `config.yaml`
 
 ### Start testing
 
-MoE Bench is by default launched using SLURM, and uses 
+AIPerf-MoE is by default launched using SLURM, and uses 
 An example script can be seen in `scripts/run.sh`.
 
 The distributed launcher launches `scripts/pretrain_distributed.sh`, which identifies its rank and world size with SLURM.

@@ -5,6 +5,10 @@
 export NNODES=$SLURM_NNODES
 export NODE_RANK=$SLURM_PROCID
 export GPUS_PER_NODE=$SLURM_NTASKS_PER_NODE
+if [ -z $GPUS_PER_NODE ]
+then
+    export GPUS_PER_NODE=1
+fi
 
 export MASTER_ADDR=$(scontrol show JobId=$SLURM_JOB_ID | grep BatchHost | tr '=' ' ' | awk '{print $2}')
 if [ -z $MASTER_PORT ]
@@ -14,6 +18,8 @@ fi
 export RANK=$NODE_RANK
 export WORLD_SIZE=$SLURM_NTASKS
 export LOCAL_RANK=$(($NODE_RANK%$GPUS_PER_NODE))
+
+export CUDA_VISIBLE_DEVICES=$LOCAL_RANK
 
 #export NCCL_DEBUG=info
 
